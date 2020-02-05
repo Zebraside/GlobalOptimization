@@ -4,12 +4,11 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
     - name: configure
-      run: git lfs pull
-    - name: make
-      run: ./generate.sh
+      run: mkdir build && cd build && cmake -DENABLE_GUI=OFF ..
+    - name: build
+      run: cmake --build build
