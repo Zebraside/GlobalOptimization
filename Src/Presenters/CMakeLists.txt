@@ -3,7 +3,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 #TODO: add Qt libs as thirdparty archive
-find_package(Qt5 COMPONENTS Widgets Core DataVisualization Quick REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Core DataVisualization REQUIRED)
 
 add_library(Presenters
                 STATIC
@@ -19,5 +19,4 @@ target_link_libraries(Presenters
             Qt5::Core
             Qt5::Gui
             Qt5::DataVisualization
-            Qt5::Quick
             stdc++fs)
