@@ -2,6 +2,12 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
+if (EXISTS "../Thirdparty/Qt" AND EXISTS ${CMAKE_PREFIX_PATH})
+    message(STATUS "All thirdpary exists")
+else()
+    message(STATUS "Not all thirdpary exists")
+endif()
+
 #TODO: add Qt libs as thirdparty archive
 find_package(Qt5 COMPONENTS Widgets Core DataVisualization REQUIRED)
 
