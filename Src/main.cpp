@@ -1,10 +1,16 @@
-#include <QtWidgets/QApplication>
+#include <iostream>
 
-#include "Presenters/main_window.hpp"
+#ifdef ENABLE_GUI
+#include "Presenters/application.hpp"
+#endif
 
 int main(int argc, char **argv) {
-    QApplication app(argc, argv);
-    MainWinow window;
-    return app.exec();
+#ifdef ENABLE_GUI
+    Application a(argc, argv);
+    a.run();
+#else
+    std::cout << "Nothing to show\n";
+#endif
+
     return 0;
 }

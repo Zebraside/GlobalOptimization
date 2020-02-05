@@ -7,10 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON) # TODO: check this option
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
-find_package(Qt5 COMPONENTS Widgets Core DataVisualization Quick REQUIRED)
+option(ENABLE_GUI "Enable Qt based UI" OFF)
+message(STATUS "ENABLE_GUI option is ${ENABLE_GUI}")
 
 add_subdirectory(Src)
