@@ -10,6 +10,6 @@ public:
 	double operator()(double x);
 
 private:
-	double calculate(double x);
+	double calculateExample(double x);
 
 };

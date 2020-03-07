@@ -9,10 +9,10 @@ Function::Function(double _a, double _b, double _c, double _d)
 }
 double Function::operator()(double x)
 {
-	return calculate(x);
+	return calculateExample(x);
 }
 
-double Function::calculate(double x)
+double Function::calculateExample(double x)
 {
 	return a * sin(b*x) + c * cos(d*x);
 }
