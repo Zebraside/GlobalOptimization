@@ -1,6 +1,3 @@
-#ifndef STRONGIN_SOLVER_METHOD_H
-#define STRONGIN_SOLVER_METHOD_H
-
 #include "Function.h"
 #include "Test.h"
 
