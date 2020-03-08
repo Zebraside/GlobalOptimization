@@ -3,13 +3,12 @@
 #include <math.h>
 #include <algorithm>
 
-using namespace std;
 void StronginSolverMethod::performTest(Function& f, double a, double b, double epsilon, int n)
 {
-    if(testHistory.size()==0)
+    if(testHistory.std::size()==0)
     {
-        testHistory.push_back(Test(a,f(a)));
-        testHistory.push_back(Test(b,f(b)));
+        testHistory.std::push_back(Test(a,f(a)));
+        testHistory.std::push_back(Test(b,f(b)));
         if(f(a)<f(b))
         {
             bestScorePoint=a;
@@ -24,10 +23,12 @@ void StronginSolverMethod::performTest(Function& f, double a, double b, double e
     }
     else
     {
-        double newPoint=(testHistory[minimumCharacteristicsIdx].point+testHistory[minimumCharacteristicsIdx+1].point)/2.0
-            -(testHistory[minimumCharacteristicsIdx+1].functionValue-testHistory[minimumCharacteristicsIdx].functionValue)/(2.0*L);
+        double newPoint=(testHistory[minimumCharacteristicsIdx]
+                        .point+testHistory[minimumCharacteristicsIdx+1].point)/2.0
+                        -(testHistory[minimumCharacteristicsIdx+1].functionValue
+                        -testHistory[minimumCharacteristicsIdx].functionValue)/(2.0*L);
 
-        testHistory.push_back(Test(newPoint,f(newPoint)));
+        testHistory.std::push_back(Test(newPoint,f(newPoint)));
         if(f(newPoint)<bestScoreValue)
         {
             bestScorePoint=newPoint;
@@ -39,40 +40,42 @@ void StronginSolverMethod::performTest(Function& f, double a, double b, double e
 }
 void StronginSolverMethod::evaluateSolution()
 {
-    std::sort(testHistory.begin(), testHistory.end(), compareByPoint);
-    vector<double> characteristics;
-    for(unsigned int i=0;i<testHistory.size()-1;i++)
+    std::sort(testHistory.std::begin(), testHistory.std::end(), compareByPoint);
+    std::vector<double> characteristics;
+    for(unsigned int i=0;i<testHistory.std::size()-1;i++)
     {
         double pointDiff=testHistory[i+1].point-testHistory[i].point;
         double valueDiff=testHistory[i+1].functionValue-testHistory[i].functionValue;
         double p=(testHistory[i].functionValue+testHistory[i+1].functionValue)/2.0
             -L*(pointDiff)*(1+pow(valueDiff/(L*pointDiff),2))/4.0;
-        characteristics.push_back(p);
+        characteristics.std::push_back(p);
     }
-    minimumCharacteristicsValue=*min_element(characteristics.begin(), characteristics.end());
-    minimumCharacteristicsIdx=distance(characteristics.begin(),
-        min_element(characteristics.begin(), characteristics.end()));
+    minimumCharacteristicsValue=*std::min_element(characteristics.std::begin(), 
+                                             characteristics.std::end());
+    minimumCharacteristicsIdx=std::distance(characteristics.std::begin(),
+        min_element(characteristics.std::begin(), characteristics.std::end()));
     solution=bestScorePoint;
 }
 bool StronginSolverMethod::checkStopCriterion(double epsilon, int n)
 {
-    return fabs(testHistory[minimumCharacteristicsIdx+1].point-testHistory[minimumCharacteristicsIdx].point)<epsilon;
+    return fabs(testHistory[minimumCharacteristicsIdx+1].point
+                -testHistory[minimumCharacteristicsIdx].point)<epsilon;
 
 }
 
 double StronginSolverMethod::calculateLipschitzConstant()
 {
     std::vector<double> value;
-    for(unsigned int i=0;i<testHistory.size();i++)
+    for(unsigned int i=0;i<testHistory.std::size();i++)
     {
-        for(unsigned int j=i+1;j<testHistory.size();j++)
+        for(unsigned int j=i+1;j<testHistory.std::size();j++)
         {
             double pointAbsDiff=fabs(testHistory[i].point-testHistory[j].point);
             double valueAbsDiff=fabs(testHistory[i].functionValue-testHistory[j].functionValue);
-            value.push_back(valueAbsDiff/pointAbsDiff);
+            value.std::push_back(valueAbsDiff/pointAbsDiff);
         }
     }
-    double maxValue=*max_element(value.begin(), value.end());
+    double maxValue=*std::max_element(value.std::begin(), value.std::end());
     if(maxValue==0)
     {
         return 1;
