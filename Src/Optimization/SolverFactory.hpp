@@ -6,5 +6,5 @@
 #include "ISolver.h"
 
 class SolverFactory {
-    static std::unique_ptr<ISolver> create(std::string_view method);
+    static std::unique_ptr<ISolver> create(std::string_view method, double _r);
 };

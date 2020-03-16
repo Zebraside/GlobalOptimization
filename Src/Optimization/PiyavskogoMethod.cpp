@@ -10,7 +10,7 @@ PiyavskogoMethod::PiyavskogoMethod(double _r)
 }
 
 
-double PiyavskogoMethod::solve(Function& f, double a, double b, double epsilon, int n, std::vector<Test>& history, int& operationCount)
+double PiyavskogoMethod::solve(IFunction& f, double a, double b, double epsilon, int n, std::vector<Test>& history, int& operationCount)
 {
 	operationCount = 0;
 	while (true)
@@ -28,7 +28,7 @@ double PiyavskogoMethod::solve(Function& f, double a, double b, double epsilon, 
 	return solution;
 }
 
-void PiyavskogoMethod::performTest(Function& f, double a, double b, double epsilon, int n)
+void PiyavskogoMethod::performTest(IFunction& f, double a, double b, double epsilon, int n)
 {
 	if (testHistory.size() == 0)
 	{
