@@ -1,9 +1,10 @@
 #pragma once
-#include "Function.h"
+#include "IFunction.h"
 #include "Test.h"
 #include <vector>
+#include "SolverMethod.h"
 
-class PiyavskogoMethod
+class PiyavskogoMethod : public SolverMethod
 {
 private:
 	int op;
@@ -18,12 +19,11 @@ private:
 
 public:
 	PiyavskogoMethod(double _r);
-	void performTest(Function& f, double a, double b, double epsilon, int n);
-	void evaluateSolution();
-	bool checkStopCriterion(double epsilon, int n);
-	double solve(Function& f, double a, double b, double epsilon, int n, std::vector<Test>& history, int& operationCount);
 
 protected:
+    void performTest(IFunction& f, double a, double b, double epsilon, int n);
+    void evaluateSolution();
+    bool checkStopCriterion(double epsilon, int n);
 	double solution;
 	std::vector<Test> testHistory;
 };
