@@ -1,7 +1,8 @@
 #pragma once
 #include <math.h>
+#include "IFunction.h"
 
-class Function
+class Function : public IFunction
 {
 	double a, b, c, d;
 

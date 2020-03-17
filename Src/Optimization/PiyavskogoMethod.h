@@ -2,9 +2,9 @@
 #include "IFunction.h"
 #include "Test.h"
 #include <vector>
-#include "ISolver.h"
+#include "SolverMethod.h"
 
-class PiyavskogoMethod : public ISolver
+class PiyavskogoMethod : public SolverMethod
 {
 private:
 	int op;
@@ -19,12 +19,11 @@ private:
 
 public:
 	PiyavskogoMethod(double _r);
-	void performTest(IFunction& f, double a, double b, double epsilon, int n);
-	void evaluateSolution();
-	bool checkStopCriterion(double epsilon, int n);
-    double PiyavskogoMethod::solve(IFunction& f, double a, double b, double epsilon, int n, std::vector<Test>& history, int& operationCount);
 
 protected:
+    void performTest(IFunction& f, double a, double b, double epsilon, int n);
+    void evaluateSolution();
+    bool checkStopCriterion(double epsilon, int n);
 	double solution;
 	std::vector<Test> testHistory;
 };
