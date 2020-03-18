@@ -29,6 +29,4 @@ protected:
     void performTest(IFunction& f, double a, double b, double epsilon, int n);
     void evaluateSolution();
     bool checkStopCriterion(double epsilon, int n);
-	double solution;
-	std::vector<Test> testHistory;
 };
