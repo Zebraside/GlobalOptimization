@@ -19,6 +19,8 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QCoreApplication>
+#include "../Optimization/SolverFactory.hpp"
+#include <QtWidgets/QSlider>
 
 template <class Widget>
 static Widget* makeNamedLine(QBoxLayout* layout, const std::string& name) {
@@ -73,24 +75,38 @@ Q_OBJECT
         params._r = makeNamedLine<QLineEdit>(layout, "r");
 
         params._method = new QComboBox();
-        params._method->addItem(QString("one"));
-        params._method->addItem(QString("two"));
-        params._method->addItem(QString("three"));
+        for (auto& method : SolverFactory::getMethods()) {
+            params._method->addItem(QString(method.c_str()));
+        }
+
         layout->addWidget(params._method);
 
-        auto go_button = new QPushButton("Start");
+        auto go_button = new QPushButton("Solve");
         layout->addWidget(go_button);
 
         connect(go_button, SIGNAL (released()), this , SLOT (do_nothing())) ;
     }
 
+    void update_slider(const std::vector<Test>& test_history) {
+        _slider->setRange(0, test_history.size());
+    }
+
     void makeExperimentsSection(QBoxLayout* layout) {
-        
+        _result = makeNamedLine<QLineEdit>(layout, "Result");
+        layout->addWidget(_result);
+        _op_count = makeNamedLine<QLineEdit>(layout, "Iterations Count");
+        layout->addWidget(_op_count);
+
+        _slider = new QSlider(Qt::Orientation::Horizontal);
+        _slider->setTickPosition(QSlider::TicksBothSides);
+        _slider->setTickInterval(1);
+        connect(_slider, SIGNAL(sliderReleased()), this, SLOT(updatePlot()));
+        layout->addWidget(_slider);
     }
 
     void createSidePanel(QBoxLayout* layout) {
         makeParametersSection(layout);
-
+        makeExperimentsSection(layout);
     }
 
     void fillPlotView(QLayout* layout) {
@@ -98,7 +114,7 @@ Q_OBJECT
         m_chart->setChart(new Chart());
 
         auto chart = m_chart->chart();
-        chart->setTitle("Zoom in/out example");
+        chart->setTitle("Global Optimization");
         chart->setAnimationOptions(QChart::SeriesAnimations);
         chart->legend()->hide();
         chart->createDefaultAxes();
@@ -111,7 +127,7 @@ Q_OBJECT
     void fillRandomPlot() {
         auto series = new QLineSeries();
         Function* f = new Function(10, 2, 11, 5);
-        float step = 0.1;
+        float step = 0.05;
         float strat = -1;
         float i = 0;
         while ( i < 10) {
@@ -135,7 +151,8 @@ Q_OBJECT
         m_chart->chart()->createDefaultAxes();
     }
 
-    void createPlot(Function& f) {
+    void createPlot(IFunction& f) {
+        m_chart->chart()->removeAllSeries();
         auto series = new QLineSeries();
 
         float step = 0.1;
@@ -156,7 +173,6 @@ Q_OBJECT
 
 public:
     MainWinow() {
-        m_window = std::make_unique<QWidget>();
 
         auto hLayout = new QHBoxLayout();
         auto vLayout = new QVBoxLayout();
@@ -178,7 +194,6 @@ public:
     }
 
     ~MainWinow() {
-        int x = 42;
     }
 
     bool checkInput() const {
@@ -200,14 +215,14 @@ public:
         if (parameters._min->text().isEmpty())
             return false;
 
-//        if (parameters._num_of_intervals->text().isEmpty())
-//            return false;
-//
-//        if (parameters._stop_criteria->text().isEmpty())
-//            return false;
-//
-//        if (parameters._r->text().isEmpty())
-//            return false;
+        if (parameters._num_of_intervals->text().isEmpty())
+            return false;
+
+        if (parameters._stop_criteria->text().isEmpty())
+            return false;
+
+        if (parameters._r->text().isEmpty())
+            return false;
 
         return true;
     }
@@ -216,21 +231,82 @@ public:
         return line->text().toInt();
     }
 
+    float lineToFloat(QLineEdit* line) {
+        return line->text().toFloat();
+    }
+
 public slots:
     void do_nothing() {
         if (!checkInput())
             return;
 
-        Function f(lineToInt(parameters._a), lineToInt(parameters._b), lineToInt(parameters._c), lineToInt(parameters._d));
-        createPlot(f);
+        std::shared_ptr<IFunction> f = std::make_shared<Function>(lineToInt(parameters._a), lineToInt(parameters._b), lineToInt(parameters._c), lineToInt(parameters._d));
+        createPlot(*f);
 
 
+        auto method = SolverFactory::getMethods()[parameters._method->currentIndex()];
+        auto solving_method = SolverFactory::create(method, lineToFloat(parameters._r));
+        std::vector<Test> history;
+        int operationCount;
+        auto result = solving_method->solve(*f,
+                lineToFloat(parameters._min),
+                lineToFloat(parameters._max),
+                lineToFloat(parameters._stop_criteria),
+                lineToInt(parameters._num_of_intervals),
+                history,
+                operationCount);
+
+        _result->setText(QString::number(result));
+        _op_count->setText(QString::number(operationCount));
+
+        experiment = {f, history};
+
+        update_slider(history);
+    }
+
+
+    void updatePlot() {
+        if (!experiment.function)
+            return;
+
+        createPlot(*experiment.function);
+
+        auto current_idx = _slider->value();
+
+
+        auto old_series = new QScatterSeries();
+        old_series->setMarkerSize(7.0);
+
+        auto& history = experiment.history;
+        for (size_t i = 0; i < current_idx - 1; ++i) {
+            QPointF p(history[i].point, history[i].functionValue);
+            *old_series << p;
+        }
+
+        m_chart->chart()->addSeries(old_series);
+
+        auto new_series = new QScatterSeries();
+        new_series->setMarkerSize(7.0);
+        *new_series <<  QPointF(history[current_idx].point, history[current_idx].functionValue);
+
+        m_chart->chart()->addSeries(new_series);
+
+        m_chart->chart()->createDefaultAxes();
     }
 
 private:
-    std::unique_ptr<QWidget> m_window;
+    struct Experiment {
+        std::shared_ptr<IFunction> function;
+        std::vector<Test> history;
+    };
+
+    Experiment experiment;
+//    std::unique_ptr<QWidget> m_window;
     std::unique_ptr<QChartView> m_chart;
 
     std::map<std::string, QLineSeries> m_series_cache;
     FunctionParameters parameters;
+    QLineEdit* _result;
+    QLineEdit* _op_count;
+    QSlider* _slider;
 };
