@@ -271,14 +271,14 @@ public slots:
 
         createPlot(*experiment.function);
 
-        auto current_idx = _slider->value();
+        int current_idx = _slider->value();
 
 
         auto old_series = new QScatterSeries();
         old_series->setMarkerSize(7.0);
 
         auto& history = experiment.history;
-        for (size_t i = 0; i < current_idx - 1; ++i) {
+        for (int i = 0; i < current_idx - 1; ++i) {
             QPointF p(history[i].point, history[i].functionValue);
             *old_series << p;
         }
