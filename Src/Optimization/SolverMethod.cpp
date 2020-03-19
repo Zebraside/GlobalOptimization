@@ -16,6 +16,7 @@ double SolverMethod::solve(IFunction& f, double a, double b, double epsilon, int
             break;
         }
     }
+
     history = testHistory;
     return solution;
 }

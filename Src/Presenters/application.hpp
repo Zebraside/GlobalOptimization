@@ -6,7 +6,7 @@
 class Application {
 public:
     Application(int argc, char** argv) : m_app(argc, argv) {
-        MainWinow window;
+        m_main_window.reset(new MainWinow());
     }
 
     int run() {
@@ -15,4 +15,5 @@ public:
 
 private:
     QApplication m_app;
+    std::unique_ptr<MainWinow> m_main_window;
 };

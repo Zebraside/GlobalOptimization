@@ -1,220 +1,312 @@
 #pragma once
 
+#include <iostream>
+#include "chart.h"
+#include "../Optimization/IFunction.h"
+#include "../Optimization/Function.h"
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QWidget>
+#include <QtWidgets/QMainWindow>
+#include <QtCore/QtMath>
+#include <QtCore/QRandomGenerator>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QChartView>
 #include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QRadioButton>
-#include <QtWidgets/QSlider>
-#include <QtWidgets/QGroupBox>
 #include <QtWidgets/QComboBox>
+#include <memory>
+#include <QtCharts/QScatterSeries>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QMessageBox>
-#include <QtGui/QPainter>
-#include <QtGui/QScreen>
+#include <QtWidgets/QPushButton>
+#include <QCoreApplication>
+#include "../Optimization/SolverFactory.hpp"
+#include <QtWidgets/QSlider>
 
-#include "surfacegraph.h"
+template <class Widget>
+static Widget* makeNamedLine(QBoxLayout* layout, const std::string& name) {
+    auto vl = new QHBoxLayout();
+    auto label = new QLabel(QString(name.c_str()));
+    vl->addWidget(label);
+    auto line = new Widget();
+    vl->addWidget(line);
+    layout->addLayout(vl);
+    return line;
+}
 
-class MainWinow {
-    void createModelGroup(QWidget* widget, QLayout* layout, SurfaceGraph* modifier) {
-        QGroupBox *modelGroupBox = new QGroupBox(QStringLiteral("Model"));
+struct FunctionParameters {
+    QLineEdit* _a;
+    QLineEdit* _b;
+    QLineEdit* _c;
+    QLineEdit* _d;
 
-        QRadioButton *sqrtSinModelRB = new QRadioButton(widget);
-        sqrtSinModelRB->setText(QStringLiteral("Sqrt && Sin"));
-        sqrtSinModelRB->setChecked(false);
+    QLineEdit* _min;
+    QLineEdit* _max;
 
-        QRadioButton *heightMapModelRB = new QRadioButton(widget);
-        heightMapModelRB->setText(QStringLiteral("Height Map"));
-        heightMapModelRB->setChecked(false);
+    QLineEdit* _stop_criteria;
+    QLineEdit* _num_of_intervals;
+    QLineEdit* _r;
 
-        QVBoxLayout *modelVBox = new QVBoxLayout;
-        modelVBox->addWidget(sqrtSinModelRB);
-        modelVBox->addWidget(heightMapModelRB);
-        modelGroupBox->setLayout(modelVBox);
+    QComboBox* _method;
+};
 
-        layout->addWidget(modelGroupBox);
+class MainWinow : public QMainWindow {
+Q_OBJECT
 
-        QObject::connect(heightMapModelRB, &QRadioButton::toggled,
-                         modifier, &SurfaceGraph::enableHeightMapModel);
-        QObject::connect(sqrtSinModelRB, &QRadioButton::toggled,
-                         modifier, &SurfaceGraph::enableSqrtSinModel);
+    void makeParametersSection(QBoxLayout* layout) {
+        auto& params = this->parameters;
+        params._a = makeNamedLine<QLineEdit>(layout, "A");
+        params._b = makeNamedLine<QLineEdit>(layout, "B");
+        params._c = makeNamedLine<QLineEdit>(layout, "C");
+        params._d = makeNamedLine<QLineEdit>(layout, "D");
+
+        {
+            auto vl = new QHBoxLayout();
+            auto label = new QLabel(QString("Interval"));
+            vl->addWidget(label);
+            params._min = new QLineEdit();
+            vl->addWidget(params._min);
+            params._max = new QLineEdit();
+            vl->addWidget(params._max);
+            layout->addLayout(vl);
+        }
+
+        params._stop_criteria = makeNamedLine<QLineEdit>(layout, "Stop criteria");
+        params._num_of_intervals = makeNamedLine<QLineEdit>(layout, "Num of intervals");
+        params._r = makeNamedLine<QLineEdit>(layout, "r");
+
+        params._method = new QComboBox();
+        for (auto& method : SolverFactory::getMethods()) {
+            params._method->addItem(QString(method.c_str()));
+        }
+
+        layout->addWidget(params._method);
+
+        auto go_button = new QPushButton("Solve");
+        layout->addWidget(go_button);
+
+        connect(go_button, SIGNAL (released()), this , SLOT (do_nothing())) ;
     }
 
-    void createSelectionMode(QWidget* widget, QLayout* layout, SurfaceGraph* modifier) {
-        QGroupBox *selectionGroupBox = new QGroupBox(QStringLiteral("Selection Mode"));
-
-        QRadioButton *modeNoneRB = new QRadioButton(widget);
-        modeNoneRB->setText(QStringLiteral("No selection"));
-        modeNoneRB->setChecked(false);
-
-        QRadioButton *modeItemRB = new QRadioButton(widget);
-        modeItemRB->setText(QStringLiteral("Item"));
-        modeItemRB->setChecked(false);
-
-        QRadioButton *modeSliceRowRB = new QRadioButton(widget);
-        modeSliceRowRB->setText(QStringLiteral("Row Slice"));
-        modeSliceRowRB->setChecked(false);
-
-        QRadioButton *modeSliceColumnRB = new QRadioButton(widget);
-        modeSliceColumnRB->setText(QStringLiteral("Column Slice"));
-        modeSliceColumnRB->setChecked(false);
-
-        QVBoxLayout *selectionVBox = new QVBoxLayout;
-        selectionVBox->addWidget(modeNoneRB);
-        selectionVBox->addWidget(modeItemRB);
-        selectionVBox->addWidget(modeSliceRowRB);
-        selectionVBox->addWidget(modeSliceColumnRB);
-        selectionGroupBox->setLayout(selectionVBox);
-
-        layout->addWidget(selectionGroupBox);
-
-        QObject::connect(modeNoneRB, &QRadioButton::toggled,
-                         modifier, &SurfaceGraph::toggleModeNone);
-        QObject::connect(modeItemRB,  &QRadioButton::toggled,
-                         modifier, &SurfaceGraph::toggleModeItem);
-        QObject::connect(modeSliceRowRB,  &QRadioButton::toggled,
-                         modifier, &SurfaceGraph::toggleModeSliceRow);
-        QObject::connect(modeSliceColumnRB,  &QRadioButton::toggled,
-                         modifier, &SurfaceGraph::toggleModeSliceColumn);
-
-        modeItemRB->setChecked(true);
+    void update_slider(const std::vector<Test>& test_history) {
+        _slider->setRange(0, test_history.size());
     }
 
-    void createRangeSliders(QWidget* widget, QLayout* layout, SurfaceGraph* modifier) {
-        QSlider *axisMinSliderX = new QSlider(Qt::Horizontal, widget);
-        axisMinSliderX->setMinimum(0);
-        axisMinSliderX->setTickInterval(1);
-        axisMinSliderX->setEnabled(true);
-        QSlider *axisMaxSliderX = new QSlider(Qt::Horizontal, widget);
-        axisMaxSliderX->setMinimum(1);
-        axisMaxSliderX->setTickInterval(1);
-        axisMaxSliderX->setEnabled(true);
-        QSlider *axisMinSliderZ = new QSlider(Qt::Horizontal, widget);
-        axisMinSliderZ->setMinimum(0);
-        axisMinSliderZ->setTickInterval(1);
-        axisMinSliderZ->setEnabled(true);
-        QSlider *axisMaxSliderZ = new QSlider(Qt::Horizontal, widget);
-        axisMaxSliderZ->setMinimum(1);
-        axisMaxSliderZ->setTickInterval(1);
-        axisMaxSliderZ->setEnabled(true);
+    void makeExperimentsSection(QBoxLayout* layout) {
+        _result = makeNamedLine<QLineEdit>(layout, "Result");
+        layout->addWidget(_result);
+        _op_count = makeNamedLine<QLineEdit>(layout, "Iterations Count");
+        layout->addWidget(_op_count);
 
-        layout->addWidget(new QLabel(QStringLiteral("Column range")));
-        layout->addWidget(axisMinSliderX);
-        layout->addWidget(axisMaxSliderX);
-        layout->addWidget(new QLabel(QStringLiteral("Row range")));
-        layout->addWidget(axisMinSliderZ);
-        layout->addWidget(axisMaxSliderZ);
-
-        modifier->setAxisMinSliderX(axisMinSliderX);
-        modifier->setAxisMaxSliderX(axisMaxSliderX);
-        modifier->setAxisMinSliderZ(axisMinSliderZ);
-        modifier->setAxisMaxSliderZ(axisMaxSliderZ);
-
-        QObject::connect(axisMinSliderX, &QSlider::valueChanged,
-                         modifier, &SurfaceGraph::adjustXMin);
-        QObject::connect(axisMaxSliderX, &QSlider::valueChanged,
-                         modifier, &SurfaceGraph::adjustXMax);
-        QObject::connect(axisMinSliderZ, &QSlider::valueChanged,
-                         modifier, &SurfaceGraph::adjustZMin);
-        QObject::connect(axisMaxSliderZ, &QSlider::valueChanged,
-                         modifier, &SurfaceGraph::adjustZMax);
-
-
+        _slider = new QSlider(Qt::Orientation::Horizontal);
+        _slider->setTickPosition(QSlider::TicksBothSides);
+        _slider->setTickInterval(1);
+        connect(_slider, SIGNAL(sliderReleased()), this, SLOT(updatePlot()));
+        layout->addWidget(_slider);
     }
 
-    void createThemeSelector(QWidget* widget, QLayout* layout, SurfaceGraph* modifier) {
-        QComboBox *themeList = new QComboBox(widget);
-        themeList->addItem(QStringLiteral("Qt"));
-        themeList->addItem(QStringLiteral("Primary Colors"));
-        themeList->addItem(QStringLiteral("Digia"));
-        themeList->addItem(QStringLiteral("Stone Moss"));
-        themeList->addItem(QStringLiteral("Army Blue"));
-        themeList->addItem(QStringLiteral("Retro"));
-        themeList->addItem(QStringLiteral("Ebony"));
-        themeList->addItem(QStringLiteral("Isabelle"));
-
-        QGroupBox *colorGroupBox = new QGroupBox(QStringLiteral("Custom gradient"));
-
-        QLinearGradient grBtoY(0, 0, 1, 100);
-        grBtoY.setColorAt(1.0, Qt::black);
-        grBtoY.setColorAt(0.67, Qt::blue);
-        grBtoY.setColorAt(0.33, Qt::red);
-        grBtoY.setColorAt(0.0, Qt::yellow);
-        QPixmap pm(24, 100);
-        QPainter pmp(&pm);
-        pmp.setBrush(QBrush(grBtoY));
-        pmp.setPen(Qt::NoPen);
-        pmp.drawRect(0, 0, 24, 100);
-        QPushButton *gradientBtoYPB = new QPushButton(widget);
-        gradientBtoYPB->setIcon(QIcon(pm));
-        gradientBtoYPB->setIconSize(QSize(24, 100));
-
-        QLinearGradient grGtoR(0, 0, 1, 100);
-        grGtoR.setColorAt(1.0, Qt::darkGreen);
-        grGtoR.setColorAt(0.5, Qt::yellow);
-        grGtoR.setColorAt(0.2, Qt::red);
-        grGtoR.setColorAt(0.0, Qt::darkRed);
-        pmp.setBrush(QBrush(grGtoR));
-        pmp.drawRect(0, 0, 24, 100);
-        QPushButton *gradientGtoRPB = new QPushButton(widget);
-        gradientGtoRPB->setIcon(QIcon(pm));
-        gradientGtoRPB->setIconSize(QSize(24, 100));
-
-        QHBoxLayout *colorHBox = new QHBoxLayout;
-        colorHBox->addWidget(gradientBtoYPB);
-        colorHBox->addWidget(gradientGtoRPB);
-        colorGroupBox->setLayout(colorHBox);
-
-
-        layout->addWidget(new QLabel(QStringLiteral("Theme")));
-        layout->addWidget(themeList);
-        layout->addWidget(colorGroupBox);
-
-
-        QObject::connect(themeList, SIGNAL(currentIndexChanged(int)),
-                         modifier, SLOT(changeTheme(int)));
-        QObject::connect(gradientBtoYPB, &QPushButton::pressed,
-                         modifier, &SurfaceGraph::setBlackToYellowGradient);
-        QObject::connect(gradientGtoRPB, &QPushButton::pressed,
-                         modifier, &SurfaceGraph::setGreenToRedGradient);
-
-        themeList->setCurrentIndex(2);
+    void createSidePanel(QBoxLayout* layout) {
+        makeParametersSection(layout);
+        makeExperimentsSection(layout);
     }
+
+    void fillPlotView(QLayout* layout) {
+        m_chart = std::make_unique<QChartView>();
+        m_chart->setChart(new Chart());
+
+        auto chart = m_chart->chart();
+        chart->setTitle("Global Optimization");
+        chart->setAnimationOptions(QChart::SeriesAnimations);
+        chart->legend()->hide();
+        chart->createDefaultAxes();
+
+        m_chart->setRenderHint(QPainter::Antialiasing);
+
+        layout->addWidget(m_chart.get());
+    }
+
+    void fillRandomPlot() {
+        auto series = new QLineSeries();
+        Function* f = new Function(10, 2, 11, 5);
+        float step = 0.05;
+        float strat = -1;
+        float i = 0;
+        while ( i < 10) {
+            QPointF p(i, (*f)(i));
+            *series << p;
+            i += step;
+
+        }
+
+        m_chart->chart()->addSeries(series);
+
+//        step = 1.0 / 10;
+//        auto new_series = new QScatterSeries();
+//        new_series->setMarkerSize(7.0);
+//        for (int i = 0 ; i < 10; i++) {
+//            QPointF p(strat + step * i, 5);
+//            *new_series << p;
+//        }
+//        m_chart->chart()->addSeries(new_series);
+
+        m_chart->chart()->createDefaultAxes();
+    }
+
+    void createPlot(IFunction& f) {
+        m_chart->chart()->removeAllSeries();
+        auto series = new QLineSeries();
+
+        float step = 0.1;
+        float i = parameters._min->text().toFloat();
+        float max = parameters._max->text().toFloat();
+
+        while ( i < max) {
+            QPointF p(i, (f)(i));
+            *series << p;
+            i += step;
+
+        }
+
+        m_chart->chart()->addSeries(series);
+        m_chart->chart()->createDefaultAxes();
+    }
+
 
 public:
     MainWinow() {
-        Q3DSurface *graph = new Q3DSurface();
-        QWidget *container = QWidget::createWindowContainer(graph);
-        SurfaceGraph *modifier = new SurfaceGraph(graph);
 
-        if (!graph->hasContext()) {
-            QMessageBox msgBox;
-            msgBox.setText("Couldn't initialize the OpenGL context.");
-            msgBox.exec();
-            throw std::logic_error("Can't init");
-        }
+        auto hLayout = new QHBoxLayout();
+        auto vLayout = new QVBoxLayout();
 
-        QSize screenSize = graph->screen()->size();
-        container->setMinimumSize(QSize(screenSize.width() / 2, screenSize.height() / 1.6));
-        container->setMaximumSize(screenSize);
-        container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        container->setFocusPolicy(Qt::StrongFocus);
+        QWidget *widget = new QWidget();
+        widget->setLayout(hLayout);
+        setCentralWidget(widget);
+        fillPlotView(hLayout);
 
-        QWidget *widget = new QWidget;
-        QHBoxLayout *hLayout = new QHBoxLayout(widget);
-        QVBoxLayout *vLayout = new QVBoxLayout();
-        hLayout->addWidget(container, 1);
+        hLayout->addWidget(m_chart.get());
+
         hLayout->addLayout(vLayout);
         vLayout->setAlignment(Qt::AlignTop);
 
-        widget->setWindowTitle(QStringLiteral("Global Optimization"));
+        createSidePanel(vLayout);
 
-        createModelGroup(widget, vLayout, modifier);
-        createSelectionMode(widget, vLayout, modifier);
-        createRangeSliders(widget, vLayout, modifier);
-        createThemeSelector(widget, vLayout, modifier);
-
-        widget->show();
+        fillRandomPlot();
+        this->show();
     }
+
+    ~MainWinow() {
+    }
+
+    bool checkInput() const {
+        if (parameters._a->text().isEmpty())
+            return false;
+
+        if (parameters._b->text().isEmpty())
+            return false;
+
+        if (parameters._c->text().isEmpty())
+            return false;
+
+        if (parameters._d->text().isEmpty())
+            return false;
+
+        if (parameters._max->text().isEmpty())
+            return false;
+
+        if (parameters._min->text().isEmpty())
+            return false;
+
+        if (parameters._num_of_intervals->text().isEmpty())
+            return false;
+
+        if (parameters._stop_criteria->text().isEmpty())
+            return false;
+
+        if (parameters._r->text().isEmpty())
+            return false;
+
+        return true;
+    }
+
+    int lineToInt(QLineEdit* line) {
+        return line->text().toInt();
+    }
+
+    float lineToFloat(QLineEdit* line) {
+        return line->text().toFloat();
+    }
+
+public slots:
+    void do_nothing() {
+        if (!checkInput())
+            return;
+
+        std::shared_ptr<IFunction> f = std::make_shared<Function>(lineToInt(parameters._a), lineToInt(parameters._b), lineToInt(parameters._c), lineToInt(parameters._d));
+        createPlot(*f);
+
+
+        auto method = SolverFactory::getMethods()[parameters._method->currentIndex()];
+        auto solving_method = SolverFactory::create(method, lineToFloat(parameters._r));
+        std::vector<Test> history;
+        int operationCount;
+        auto result = solving_method->solve(*f,
+                lineToFloat(parameters._min),
+                lineToFloat(parameters._max),
+                lineToFloat(parameters._stop_criteria),
+                lineToInt(parameters._num_of_intervals),
+                history,
+                operationCount);
+
+        _result->setText(QString::number(result));
+        _op_count->setText(QString::number(operationCount));
+
+        experiment = {f, history};
+
+        update_slider(history);
+    }
+
+
+    void updatePlot() {
+        if (!experiment.function)
+            return;
+
+        createPlot(*experiment.function);
+
+        int current_idx = _slider->value();
+
+
+        auto old_series = new QScatterSeries();
+        old_series->setMarkerSize(7.0);
+
+        auto& history = experiment.history;
+        for (int i = 0; i < current_idx - 1; ++i) {
+            QPointF p(history[i].point, history[i].functionValue);
+            *old_series << p;
+        }
+
+        m_chart->chart()->addSeries(old_series);
+
+        auto new_series = new QScatterSeries();
+        new_series->setMarkerSize(7.0);
+        *new_series <<  QPointF(history[current_idx].point, history[current_idx].functionValue);
+
+        m_chart->chart()->addSeries(new_series);
+
+        m_chart->chart()->createDefaultAxes();
+    }
+
+private:
+    struct Experiment {
+        std::shared_ptr<IFunction> function;
+        std::vector<Test> history;
+    };
+
+    Experiment experiment;
+//    std::unique_ptr<QWidget> m_window;
+    std::unique_ptr<QChartView> m_chart;
+
+    std::map<std::string, QLineSeries> m_series_cache;
+    FunctionParameters parameters;
+    QLineEdit* _result;
+    QLineEdit* _op_count;
+    QSlider* _slider;
 };
