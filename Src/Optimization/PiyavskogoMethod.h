@@ -1,7 +1,5 @@
 #pragma once
 #include "IFunction.h"
-#include "Test.h"
-#include <vector>
 #include "SolverMethod.h"
 
 class PiyavskogoMethod : public SolverMethod
@@ -24,6 +22,4 @@ protected:
     void performTest(IFunction& f, double a, double b, double epsilon, int n);
     void evaluateSolution();
     bool checkStopCriterion(double epsilon, int n);
-	double solution;
-	std::vector<Test> testHistory;
 };

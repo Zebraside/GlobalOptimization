@@ -1,7 +1,8 @@
-#include "Function.h"
-#include "Test.h"
+#pragma once
+#include "IFunction.h"
+#include "SolverMethod.h"
 
-class StronginSolverMethod
+class StronginSolverMethod : public SolverMethod
 {
 private:
     int op;
@@ -14,8 +15,7 @@ private:
     int minimumCharacteristicsIdx;
 public:
     StronginSolverMethod(double _r);
-    void performTest(Function& f, double a, double b, double epsilon, int n);
+    void performTest(IFunction& f, double a, double b, double epsilon, int n);
     void evaluateSolution();
     bool checkStopCriterion(double epsilon, int n);
 };
-#endif

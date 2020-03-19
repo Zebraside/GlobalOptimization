@@ -1,15 +1,14 @@
-#ifndef UNIFORM_SEARCH_METHOD_H
-#define UNIFORM_SEARCH_METHOD_H
+#pragma once
+#include "IFunction.h"
+#include "SolverMethod.h"
 
-
-class UniformSearchMethod
+class UniformSearchMethod : public SolverMethod
 {
 private: 
 	int idx;
 public:
 	UniformSearchMethod();
-	void performTest(Function& f, double a, double b, double epsilon, int n);
+	void performTest(IFunction& f, double a, double b, double epsilon, int n);
 	void evaluateSolution();
 	bool checkStopCriterion(double epsilon, int n);
 };
-#endif

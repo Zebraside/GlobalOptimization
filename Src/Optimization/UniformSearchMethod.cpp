@@ -1,8 +1,8 @@
-#include "stdafx.h"
 #include "UniformSearchMethod.h"
+#include <math.h>
 #include <algorithm>
 
-void UniformSearchMethod::performTest(Function& f, double a, double b, double epsilon, int n)
+void UniformSearchMethod::performTest(IFunction& f, double a, double b, double epsilon, int n)
 {
 	testHistory.push_back(Test(a+idx*(b-a)/n,f(a+idx*(b-a)/n)));
 	idx++;
