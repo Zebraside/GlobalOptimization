@@ -1,16 +1,28 @@
 #pragma once
 #include <math.h>
 #include "IFunction.h"
+#include <vector>
+#include <map>
+#include <string>
 
 class Function : public IFunction
 {
-	double a, b, c, d;
+	std::map<std::string, double> variables;
+	std::vector<std::string> varsNames = { "a", "b", "c", "d" };
 
 public:
-	Function(double _a, double _b, double _c, double _d);
-	double operator()(double x);
+	Function(std::vector<double> _varsValues) {
+		for (int i = 0; i < varsNames.size(); ++i) {
+			variables[varsNames[i]] = _varsValues[i];
+		}
+	};
 
-private:
-	double calculateExample(double x);
+	double operator()(double x) {
+		return variables["a"] * sin(variables["b"] * x) + variables["c"] * cos(variables["d"] * x);
+	};
+
+	std::vector<std::string> getNameParams() {
+		return varsNames;
+	};
 
 };
