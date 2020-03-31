@@ -21,6 +21,7 @@
 #include <QCoreApplication>
 #include "../Optimization/SolverFactory.hpp"
 #include <QtWidgets/QSlider>
+#include "../Optimization/FunctionFactory.h"
 
 template <class Widget>
 static Widget* makeNamedLine(QBoxLayout* layout, const std::string& name) {
@@ -34,11 +35,7 @@ static Widget* makeNamedLine(QBoxLayout* layout, const std::string& name) {
 }
 
 struct FunctionParameters {
-    QLineEdit* _a;
-    QLineEdit* _b;
-    QLineEdit* _c;
-    QLineEdit* _d;
-
+    std::map<std::string, QLineEdit*> parameters;
     QLineEdit* _min;
     QLineEdit* _max;
 
@@ -47,6 +44,7 @@ struct FunctionParameters {
     QLineEdit* _r;
 
     QComboBox* _method;
+    QComboBox* _function;
 };
 
 class MainWinow : public QMainWindow {
@@ -54,10 +52,12 @@ Q_OBJECT
 
     void makeParametersSection(QBoxLayout* layout) {
         auto& params = this->parameters;
-        params._a = makeNamedLine<QLineEdit>(layout, "A");
-        params._b = makeNamedLine<QLineEdit>(layout, "B");
-        params._c = makeNamedLine<QLineEdit>(layout, "C");
-        params._d = makeNamedLine<QLineEdit>(layout, "D");
+
+        assert(function);
+        auto parameter_names = function->getParameterNames();
+        for (const auto& name : parameter_names) {
+            params.parameters[name] = makeNamedLine<QLineEdit>(layout, name);
+        }
 
         {
             auto vl = new QHBoxLayout();
@@ -79,7 +79,13 @@ Q_OBJECT
             params._method->addItem(QString(method.c_str()));
         }
 
+//        params._function = new QComboBox();
+//        for (auto& function : FunctionFactory::getFunctions()) {
+//            params._function->addItem(QString(function.c_str()));
+//        }
+
         layout->addWidget(params._method);
+//        layout->addWidget(params._function);
 
         auto go_button = new QPushButton("Solve");
         layout->addWidget(go_button);
@@ -126,7 +132,7 @@ Q_OBJECT
 
     void fillRandomPlot() {
         auto series = new QLineSeries();
-        Function* f = new Function(10, 2, 11, 5);
+        Function* f = new Function();
         float step = 0.05;
         float strat = -1;
         float i = 0;
@@ -173,6 +179,7 @@ Q_OBJECT
 
 public:
     MainWinow() {
+        function = new Function();
 
         auto hLayout = new QHBoxLayout();
         auto vLayout = new QVBoxLayout();
@@ -197,17 +204,10 @@ public:
     }
 
     bool checkInput() const {
-        if (parameters._a->text().isEmpty())
-            return false;
-
-        if (parameters._b->text().isEmpty())
-            return false;
-
-        if (parameters._c->text().isEmpty())
-            return false;
-
-        if (parameters._d->text().isEmpty())
-            return false;
+        for (auto& [name, line] : parameters.parameters) {
+            if (line->text().isEmpty())
+                return false;
+        }
 
         if (parameters._max->text().isEmpty())
             return false;
@@ -240,7 +240,14 @@ public slots:
         if (!checkInput())
             return;
 
-        std::shared_ptr<IFunction> f = std::make_shared<Function>(lineToInt(parameters._a), lineToInt(parameters._b), lineToInt(parameters._c), lineToInt(parameters._d));
+
+        std::map<std::string, double> params;
+        for (auto& [key, value] : parameters.parameters) {
+            params[key] = lineToInt(value);
+        }
+
+        // auto function = FunctionFactory::getFunctions()[parameters._function->currentIndex()];
+        std::shared_ptr<IFunction> f = FunctionFactory::create("ExampleFunction", params);
         createPlot(*f);
 
 
@@ -309,4 +316,5 @@ private:
     QLineEdit* _result;
     QLineEdit* _op_count;
     QSlider* _slider;
+    IFunction* function;
 };
