@@ -79,13 +79,17 @@ Q_OBJECT
             params._method->addItem(QString(method.c_str()));
         }
 
-//        params._function = new QComboBox();
-//        for (auto& function : FunctionFactory::getFunctions()) {
-//            params._function->addItem(QString(function.c_str()));
-//        }
+        params._function = new QComboBox();
+        for (auto& function : FunctionFactory::getFunctions()) {
+            params._function->addItem(QString(function.c_str()));
+        }
 
         layout->addWidget(params._method);
-//        layout->addWidget(params._function);
+        layout->addWidget(params._function);
+
+        params._function->setCurrentIndex(current_idx);
+        connect(params._function, SIGNAL(currentIndexChanged(int)),
+                this, SLOT(update_function(int)));
 
         auto go_button = new QPushButton("Solve");
         layout->addWidget(go_button);
@@ -179,7 +183,14 @@ Q_OBJECT
 
 public:
     MainWinow() {
-        function = new Function();
+        function = FunctionFactory::create("ExampleFunction");
+
+        create();
+        fillRandomPlot();
+        this->show();
+    }
+
+    void create() {
 
         auto hLayout = new QHBoxLayout();
         auto vLayout = new QVBoxLayout();
@@ -195,9 +206,6 @@ public:
         vLayout->setAlignment(Qt::AlignTop);
 
         createSidePanel(vLayout);
-
-        fillRandomPlot();
-        this->show();
     }
 
     ~MainWinow() {
@@ -236,6 +244,13 @@ public:
     }
 
 public slots:
+    void update_function(int idx) {
+        function = FunctionFactory::create(FunctionFactory::getFunctions()[idx]);
+        current_idx = idx;
+        create();
+        fillRandomPlot();
+    };
+
     void do_nothing() {
         if (!checkInput())
             return;
@@ -246,8 +261,8 @@ public slots:
             params[key] = lineToInt(value);
         }
 
-        // auto function = FunctionFactory::getFunctions()[parameters._function->currentIndex()];
-        std::shared_ptr<IFunction> f = FunctionFactory::create("ExampleFunction", params);
+        auto function = FunctionFactory::getFunctions()[parameters._function->currentIndex()];
+        std::shared_ptr<IFunction> f = FunctionFactory::create(function, params);
         createPlot(*f);
 
 
@@ -316,5 +331,6 @@ private:
     QLineEdit* _result;
     QLineEdit* _op_count;
     QSlider* _slider;
-    IFunction* function;
+    std::shared_ptr<IFunction> function;
+    size_t current_idx = 0;
 };

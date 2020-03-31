@@ -20,7 +20,7 @@ public:
 	};
 
 	double operator()(double x) {
-		return variables["a"] * sin(variables["b"] * x) + variables["c"] * cos(variables["d"] * x) + variables["z"];
+		return variables["a"] * sin(variables["b"] * x) + variables["c"] * cos(variables["d"] * x);
 	};
 
     std::vector<std::string> getParameterNames() const override {
@@ -28,4 +28,29 @@ public:
     }
 
     static std::string getName() {return "ExampleFunction";}
+};
+
+class AnotherFunction : public IFunction
+{
+    std::map<std::string, double> variables;
+    std::vector<std::string> varsNames = { "a", "b", "c", "d", "z"};
+
+public:
+    AnotherFunction() {
+        variables = {{"a", 10.}, {"b",2.}, {"c",11.}, {"d" ,5.}, {"z", 1000.}};
+    }
+
+    AnotherFunction(std::map<std::string, double>& varsValues) {
+        variables = varsValues;
+    };
+
+    double operator()(double x) {
+        return variables["a"] * sin(variables["b"] * x) + variables["c"] * cos(variables["d"] * x) + variables["z"];
+    };
+
+    std::vector<std::string> getParameterNames() const override {
+        return varsNames;
+    }
+
+    static std::string getName() {return "AnotherFunction";}
 };
