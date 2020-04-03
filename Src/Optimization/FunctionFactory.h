@@ -7,7 +7,6 @@
 
 class FunctionFactory {
 public:
-    static std::shared_ptr<IFunction> create(std::string_view method, std::map<std::string, double> params);
     static std::shared_ptr<IFunction> create(std::string_view);
     static std::vector<std::string> getFunctions();
 };

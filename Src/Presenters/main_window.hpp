@@ -55,6 +55,7 @@ Q_OBJECT
 
         assert(function);
         auto parameter_names = function->getParameterNames();
+        params.parameters.clear();
         for (const auto& name : parameter_names) {
             params.parameters[name] = makeNamedLine<QLineEdit>(layout, name);
         }
@@ -246,6 +247,7 @@ public:
 public slots:
     void update_function(int idx) {
         function = FunctionFactory::create(FunctionFactory::getFunctions()[idx]);
+
         current_idx = idx;
         create();
         fillRandomPlot();
@@ -261,16 +263,16 @@ public slots:
             params[key] = lineToInt(value);
         }
 
-        auto function = FunctionFactory::getFunctions()[parameters._function->currentIndex()];
-        std::shared_ptr<IFunction> f = FunctionFactory::create(function, params);
-        createPlot(*f);
+        assert(function);
+        function->setParams(params);
+        createPlot(*function);
 
 
         auto method = SolverFactory::getMethods()[parameters._method->currentIndex()];
         auto solving_method = SolverFactory::create(method, lineToFloat(parameters._r));
         std::vector<Test> history;
         int operationCount;
-        auto result = solving_method->solve(*f,
+        auto result = solving_method->solve(*function,
                 lineToFloat(parameters._min),
                 lineToFloat(parameters._max),
                 lineToFloat(parameters._stop_criteria),
@@ -281,7 +283,7 @@ public slots:
         _result->setText(QString::number(result));
         _op_count->setText(QString::number(operationCount));
 
-        experiment = {f, history};
+        experiment = {function, history};
 
         update_slider(history);
     }

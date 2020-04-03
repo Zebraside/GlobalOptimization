@@ -7,50 +7,25 @@
 
 class Function : public IFunction
 {
-	std::map<std::string, double> variables;
-	std::vector<std::string> varsNames = { "a", "b", "c", "d"};
-
 public:
-    Function() {
-        variables = {{"a", 10.}, {"b",2.}, {"c",11.}, {"d" ,5.}};
+    Function() : IFunction({{"a", 10.}, {"b",2.}, {"c",11.}, {"d" ,5.}}) {
     }
 
-	Function(std::map<std::string, double>& varsValues) {
-	    variables = varsValues;
-	};
-
-	double operator()(double x) {
+	double operator()(double x) override {
 		return variables["a"] * sin(variables["b"] * x) + variables["c"] * cos(variables["d"] * x);
 	};
 
-    std::vector<std::string> getParameterNames() const override {
-        return varsNames;
-    }
-
-    static std::string getName() {return "ExampleFunction";}
+    static std::string getName() { return "ExampleFunction";}
 };
 
-class AnotherFunction : public IFunction
+class SinCosFunction : public IFunction
 {
-    std::map<std::string, double> variables;
-    std::vector<std::string> varsNames = { "a", "b", "c", "d", "z"};
-
 public:
-    AnotherFunction() {
-        variables = {{"a", 10.}, {"b",2.}, {"c",11.}, {"d" ,5.}, {"z", 1000.}};
+    SinCosFunction() : IFunction({{"a", 1.0}, {"b", 1.0}}) {}
+
+    static std::string getName() { return "SinCosFunction";}
+
+    virtual double operator()(double x) override {
+        return sin(variables["a"] * x) * cos(variables["b"] * x);
     }
-
-    AnotherFunction(std::map<std::string, double>& varsValues) {
-        variables = varsValues;
-    };
-
-    double operator()(double x) {
-        return variables["a"] * sin(variables["b"] * x) + variables["c"] * cos(variables["d"] * x) + variables["z"];
-    };
-
-    std::vector<std::string> getParameterNames() const override {
-        return varsNames;
-    }
-
-    static std::string getName() {return "AnotherFunction";}
 };
