@@ -7,22 +7,25 @@
 
 class Function : public IFunction
 {
-	std::map<std::string, double> variables;
-	std::vector<std::string> varsNames = { "a", "b", "c", "d" };
-
 public:
-	Function(std::vector<double> _varsValues) {
-		for (int i = 0; i < varsNames.size(); ++i) {
-			variables[varsNames[i]] = _varsValues[i];
-		}
-	};
+    Function() : IFunction({{"a", 10.}, {"b",2.}, {"c",11.}, {"d" ,5.}}) {
+    }
 
-	double operator()(double x) {
+	double operator()(double x) override {
 		return variables["a"] * sin(variables["b"] * x) + variables["c"] * cos(variables["d"] * x);
 	};
 
-	std::vector<std::string> getNameParams() {
-		return varsNames;
-	};
+    static std::string getName() { return "ExampleFunction";}
+};
 
+class SinCosFunction : public IFunction
+{
+public:
+    SinCosFunction() : IFunction({{"a", 1.0}, {"b", 1.0}}) {}
+
+    static std::string getName() { return "SinCosFunction";}
+
+    virtual double operator()(double x) override {
+        return sin(variables["a"] * x) * cos(variables["b"] * x);
+    }
 };
